@@ -1,0 +1,38 @@
+'use strict';
+console.log('Loading function');
+exports.handler = (event, context, callback) => {
+console.log('SourceIP =', event.sourceIP);
+callback(null, event.sourceIP);
+
+var AWS = require('aws-sdk');
+var ip_address = event.sourceIP;
+var username="neil";
+
+// for testing purpose, replace a null ip with 1.2.3.4
+if (ip_address === null){
+    ip_address = "1.2.3.4";
+}
+
+var docClient = new AWS.DynamoDB.DocumentClient();
+var table="ip_tracker"
+var params = {
+TableName:table,
+Key: {
+    "username": username
+    },
+    UpdateExpression: "set ip_address = :i",
+    ExpressionAttributeValues:{
+        ":i":ip_address,
+    },
+    ReturnValues:"UPDATED_NEW"
+};
+     
+docClient.update(params,function(err, data) {
+    if (err) {
+        console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+    } else {
+        console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
+    }
+});
+console.log("Updating the item for user: neil , with data: " + ip_address + " ...");
+};
